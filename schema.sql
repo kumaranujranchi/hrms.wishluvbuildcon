@@ -1,11 +1,8 @@
+-- Enable pgcrypto for gen_random_uuid
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 -- Create Schema
 CREATE SCHEMA IF NOT EXISTS hrmswishluv;
-
--- Grant usage (if needed for anon role, though usually automatic for owner)
-GRANT USAGE ON SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
-GRANT ALL ON ALL TABLES IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
 
 -- Enums
 CREATE TYPE hrmswishluv.user_role AS ENUM ('admin', 'manager', 'employee');
@@ -273,3 +270,8 @@ CREATE POLICY "Allow all access" ON hrmswishluv.departments FOR ALL USING (true)
 ALTER TABLE hrmswishluv.designations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all access" ON hrmswishluv.designations FOR ALL USING (true);
 
+-- Grant privileges (Must be done AFTER tables are created)
+GRANT USAGE ON SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA hrmswishluv TO postgres, anon, authenticated, service_role;
