@@ -1,10 +1,6 @@
 import express, { type Express } from "express";
 import fs from "fs";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import path from "path";
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -18,12 +14,15 @@ export function log(message: string, source = "express") {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+  // In Netlify/production, dist/public is relative to CWD
+  const distPath = path.resolve(process.cwd(), "dist", "public");
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+    // Fallback for local dev or different structure
+    const localDistPath = path.resolve(process.cwd(), "public");
+    if(!fs.existsSync(localDistPath)){
+         console.warn(`Could not find build directory at ${distPath} or ${localDistPath}`);
+    }
   }
 
   app.use(express.static(distPath));

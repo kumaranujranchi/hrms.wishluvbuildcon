@@ -1,13 +1,13 @@
 // server/vite.ts
 import { type Express } from "express";
 import fs from "fs";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import path from "path";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// In dev mode (where this file is loaded), we can rely on process.cwd() 
+// or standard vite behavior. We don't need __dirname from import.meta for logic here.
+
 
 export async function setupVite(app: Express, server: Server) {
   const vite = await import("vite");
@@ -40,8 +40,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        __dirname,
-        "..",
+        process.cwd(),
         "client",
         "index.html",
       );
