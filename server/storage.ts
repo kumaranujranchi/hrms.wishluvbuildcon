@@ -210,7 +210,8 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .select('*')
       .eq('id', id)
       .single();
@@ -221,7 +222,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .select('*')
       .eq('email', email)
       .single();
@@ -246,7 +248,8 @@ export class DatabaseStorage implements IStorage {
 
       // Update password in database
       const { error } = await supabase
-        .from('hrms_users')
+        .schema('hrmswishluv')
+        .from('users')
         .update({ 
           password_hash: newPasswordHash,
           updated_at: new Date().toISOString() 
@@ -262,7 +265,8 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(userData: { email: string; passwordHash: string; firstName: string; lastName: string; }): Promise<User> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .insert({
         email: userData.email,
         password_hash: userData.passwordHash,
@@ -281,7 +285,8 @@ export class DatabaseStorage implements IStorage {
 
   async createEmployeeByAdmin(userData: { email: string; passwordHash: string; firstName: string; lastName: string; department?: string; position?: string; needsPasswordReset?: boolean; }): Promise<User> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .insert({
         email: userData.email,
         password_hash: userData.passwordHash,
@@ -324,7 +329,8 @@ export class DatabaseStorage implements IStorage {
     delete supabaseUpdates.isActive;
 
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .update(supabaseUpdates)
       .eq('id', id)
       .select()
@@ -337,7 +343,8 @@ export class DatabaseStorage implements IStorage {
   // Employee operations
   async getAllEmployees(): Promise<User[]> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .select('*')
       .eq('is_active', true);
     
@@ -347,7 +354,8 @@ export class DatabaseStorage implements IStorage {
 
   async getEmployeesByManager(managerId: string): Promise<User[]> {
     const { data, error } = await supabase
-      .from('hrms_users')
+      .schema('hrmswishluv')
+      .from('users')
       .select('*')
       .eq('manager_id', managerId)
       .eq('is_active', true);
@@ -365,15 +373,15 @@ export class DatabaseStorage implements IStorage {
     // but strict deletes need manual order if cascade is restricted.
     // Assuming we do it manually for safety as per original code.
 
-    await supabase.from('hrms_attendance').delete().eq('user_id', id);
-    await supabase.from('hrms_leave_requests').delete().eq('user_id', id);
-    await supabase.from('hrms_expense_claims').delete().eq('user_id', id);
-    await supabase.from('hrms_payroll').delete().eq('user_id', id);
-    await supabase.from('hrms_employee_profiles').delete().eq('user_id', id);
-    await supabase.from('hrms_leave_assignments').delete().eq('user_id', id);
-    await supabase.from('hrms_employee_salary_structure').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('attendance').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('leave_requests').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('expense_claims').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('payroll').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('employee_profiles').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('leave_assignments').delete().eq('user_id', id);
+    await supabase.schema('hrmswishluv').from('employee_salary_structure').delete().eq('user_id', id);
     
-    const { error } = await supabase.from('hrms_users').delete().eq('id', id);
+    const { error } = await supabase.schema('hrmswishluv').from('users').delete().eq('id', id);
     if (error) throw new Error(error.message);
   }
 
@@ -384,7 +392,8 @@ export class DatabaseStorage implements IStorage {
       return this.updateUser(id, userData);
     } else {
       const { data, error } = await supabase
-        .from('hrms_users')
+        .schema('hrmswishluv')
+        .from('users')
         .insert({
           id,
           email: userData.email,
@@ -413,7 +422,8 @@ export class DatabaseStorage implements IStorage {
     if (dbData.locationName) { dbData.location_name = dbData.locationName; delete dbData.locationName; }
 
     const { data, error } = await supabase
-      .from('hrms_attendance')
+      .schema('hrmswishluv')
+      .from('attendance')
       .insert(dbData)
       .select()
       .single();
@@ -430,7 +440,8 @@ export class DatabaseStorage implements IStorage {
     if (dbUpdates.locationName) { dbUpdates.location_name = dbUpdates.locationName; delete dbUpdates.locationName; }
 
     const { data, error } = await supabase
-      .from('hrms_attendance')
+      .schema('hrmswishluv')
+      .from('attendance')
       .update(dbUpdates)
       .eq('id', id)
       .select()
@@ -442,7 +453,8 @@ export class DatabaseStorage implements IStorage {
 
   async getAttendanceByUser(userId: string, startDate?: Date, endDate?: Date): Promise<Attendance[]> {
     let query = supabase
-      .from('hrms_attendance')
+      .schema('hrmswishluv')
+      .from('attendance')
       .select('*')
       .eq('user_id', userId)
       .order('date', { ascending: false });
@@ -462,7 +474,8 @@ export class DatabaseStorage implements IStorage {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const { data, error } = await supabase
-      .from('hrms_attendance')
+      .schema('hrmswishluv')
+      .from('attendance')
       .select('*')
       .eq('user_id', userId)
       .gte('date', today.toISOString())
@@ -492,6 +505,7 @@ export class DatabaseStorage implements IStorage {
         absentToday: 0,
         averageWorkingHours: 0,
         attendanceRate: 0,
+        // ...
       };
   }
   
@@ -509,7 +523,8 @@ export class DatabaseStorage implements IStorage {
     if (dbData.approverNotes) { dbData.approver_notes = dbData.approverNotes; delete dbData.approverNotes; }
 
     const { data, error } = await supabase
-      .from('hrms_leave_requests')
+      .schema('hrmswishluv')
+      .from('leave_requests')
       .insert(dbData)
       .select()
       .single();
@@ -520,7 +535,8 @@ export class DatabaseStorage implements IStorage {
 
   async getLeaveRequestsByUser(userId: string): Promise<LeaveRequest[]> {
      const { data, error } = await supabase
-      .from('hrms_leave_requests')
+      .schema('hrmswishluv')
+      .from('leave_requests')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -533,11 +549,12 @@ export class DatabaseStorage implements IStorage {
     // Need to join with users.
     // Try using Supabase relational query. Assuming 'user:user_id' relation exists or just 'users'.
     // We will try fetching everything and manually mapping if simple join fails, 
-    // but typically `select('*, user:hrms_users!user_id(*)')` works if FK exists.
+    // but typically `select('*, user:users!user_id(*)')` works if FK exists.
     
     let query = supabase
-      .from('hrms_leave_requests')
-      .select('*, user:hrms_users!user_id(first_name, last_name, email, department)')
+      .schema('hrmswishluv')
+      .from('leave_requests')
+      .select('*, user:users!user_id(first_name, last_name, email, department)')
       .eq('status', 'pending');
 
     if (approverId) {
@@ -575,7 +592,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateLeaveRequestStatus(id: string, status: string, approverId: string, notes?: string): Promise<LeaveRequest> {
     const { data, error } = await supabase
-      .from('hrms_leave_requests')
+      .schema('hrmswishluv')
+      .from('leave_requests')
       .update({
         status,
         approver_id: approverId,
@@ -597,7 +615,8 @@ export class DatabaseStorage implements IStorage {
     if (dbData.receiptUrl) { dbData.receipt_url = dbData.receiptUrl; delete dbData.receiptUrl; }
 
     const { data, error } = await supabase
-      .from('hrms_expense_claims')
+      .schema('hrmswishluv')
+      .from('expense_claims')
       .insert(dbData)
       .select()
       .single();
@@ -607,7 +626,8 @@ export class DatabaseStorage implements IStorage {
 
   async getExpenseClaimsByUser(userId: string): Promise<ExpenseClaim[]> {
     const { data, error } = await supabase
-      .from('hrms_expense_claims')
+      .schema('hrmswishluv')
+      .from('expense_claims')
       .select('*')
       .eq('user_id', userId)
       .order('submission_date', { ascending: false });
@@ -617,8 +637,9 @@ export class DatabaseStorage implements IStorage {
 
   async getPendingExpenseClaims(approverId?: string): Promise<ExpenseClaim[]> {
     const { data, error } = await supabase
-      .from('hrms_expense_claims')
-      .select('*, user:hrms_users!user_id(first_name, last_name, email, department)')
+      .schema('hrmswishluv')
+      .from('expense_claims')
+      .select('*, user:users!user_id(first_name, last_name, email, department)')
       .eq('status', 'submitted')
       .order('submission_date', { ascending: false });
 
@@ -647,7 +668,8 @@ export class DatabaseStorage implements IStorage {
     if (status === 'approved') updateData.approval_date = new Date().toISOString();
 
     const { data, error } = await supabase
-      .from('hrms_expense_claims')
+      .schema('hrmswishluv')
+      .from('expense_claims')
       .update(updateData)
       .eq('id', id)
       .select()
@@ -659,12 +681,12 @@ export class DatabaseStorage implements IStorage {
 
   // Payroll - Basic implementation
   async getPayrollByUser(userId: string): Promise<Payroll[]> {
-     const { data, error } = await supabase.from('hrms_payroll').select('*').eq('user_id', userId).order('year', { ascending: false }).order('month', { ascending: false });
+     const { data, error } = await supabase.schema('hrmswishluv').from('payroll').select('*').eq('user_id', userId).order('year', { ascending: false }).order('month', { ascending: false });
      if (error) throw new Error(error.message);
      return (data || []).map(mapPayroll);
   }
   async getPayrollByUserAndPeriod(userId: string, month: number, year: number): Promise<Payroll | undefined> {
-     const { data, error } = await supabase.from('hrms_payroll').select('*').eq('user_id', userId).eq('month', month).eq('year', year).maybeSingle();
+     const { data, error } = await supabase.schema('hrmswishluv').from('payroll').select('*').eq('user_id', userId).eq('month', month).eq('year', year).maybeSingle();
      return mapPayroll(data);
   }
   async createPayrollRecord(payrollData: InsertPayroll): Promise<Payroll> {
@@ -681,7 +703,7 @@ export class DatabaseStorage implements IStorage {
      return {} as EmployeeSalaryStructure;
   }
   async getEmployeeSalaryStructure(userId: string): Promise<EmployeeSalaryStructure | undefined> {
-     const { data } = await supabase.from('hrms_employee_salary_structure').select('*').eq('user_id', userId).maybeSingle();
+     const { data } = await supabase.schema('hrmswishluv').from('employee_salary_structure').select('*').eq('user_id', userId).maybeSingle();
      return (data || undefined) as EmployeeSalaryStructure | undefined;
   }
   async getAllEmployeesWithSalaryStructure(): Promise<any[]> { return []; }
@@ -700,7 +722,7 @@ export class DatabaseStorage implements IStorage {
 
   // Employee Profile
   async getEmployeeProfile(userId: string): Promise<EmployeeProfile | undefined> {
-    const { data } = await supabase.from('hrms_employee_profiles').select('*').eq('user_id', userId).maybeSingle();
+    const { data } = await supabase.schema('hrmswishluv').from('employee_profiles').select('*').eq('user_id', userId).maybeSingle();
     return (data || undefined) as EmployeeProfile | undefined;
   }
   async createEmployeeProfile(profile: InsertEmployeeProfile): Promise<EmployeeProfile> {
@@ -718,15 +740,16 @@ export class DatabaseStorage implements IStorage {
     if (dbData.authorId) { dbData.author_id = dbData.authorId; delete dbData.authorId; }
     if (dbData.isActive !== undefined) { dbData.is_active = dbData.isActive; delete dbData.isActive; }
 
-    const { data, error } = await supabase.from('hrms_announcements').insert(dbData).select().single();
+    const { data, error } = await supabase.schema('hrmswishluv').from('announcements').insert(dbData).select().single();
     if (error) throw new Error(error.message);
     return mapAnnouncement(data);
   }
 
   async getActiveAnnouncements(): Promise<Announcement[]> {
     const { data, error } = await supabase
-      .from('hrms_announcements')
-      .select('*, author:hrms_users!author_id(first_name, last_name)')
+      .schema('hrmswishluv')
+      .from('announcements')
+      .select('*, author:users!author_id(first_name, last_name)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(5);
@@ -747,7 +770,7 @@ export class DatabaseStorage implements IStorage {
 
   // Company Settings
   async getCompanySettings(): Promise<CompanySettings | undefined> {
-     const { data } = await supabase.from('hrms_company_settings').select('*').limit(1).maybeSingle();
+     const { data } = await supabase.schema('hrmswishluv').from('company_settings').select('*').limit(1).maybeSingle();
      return (data || undefined) as CompanySettings | undefined;
   }
   async updateCompanySettings(settings: Partial<CompanySettings>): Promise<CompanySettings> {
@@ -757,7 +780,7 @@ export class DatabaseStorage implements IStorage {
 
   // Departments
   async getDepartments(): Promise<Department[]> {
-    const { data, error } = await supabase.from('hrms_departments').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.schema('hrmswishluv').from('departments').select('*').order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data || []) as Department[];
   }
@@ -765,23 +788,23 @@ export class DatabaseStorage implements IStorage {
      const dbData: any = { ...department };
      if (dbData.createdBy) { dbData.created_by = dbData.createdBy; delete dbData.createdBy; }
      
-     const { data, error } = await supabase.from('hrms_departments').insert(dbData).select().single();
+     const { data, error } = await supabase.schema('hrmswishluv').from('departments').insert(dbData).select().single();
      if (error) throw new Error(error.message);
      return data as Department;
   }
   async updateDepartment(id: string, department: InsertDepartment): Promise<Department | null> {
-      const { data, error } = await supabase.from('hrms_departments').update(department).eq('id', id).select().single();
+      const { data, error } = await supabase.schema('hrmswishluv').from('departments').update(department).eq('id', id).select().single();
       if (error) return null;
       return data as Department;
   }
   async deleteDepartment(id: string): Promise<boolean> {
-     const { error } = await supabase.from('hrms_departments').delete().eq('id', id);
+     const { error } = await supabase.schema('hrmswishluv').from('departments').delete().eq('id', id);
      return !error;
   }
 
   // Designations
   async getDesignations(): Promise<(Designation & { department?: Department })[]> {
-    const { data, error } = await supabase.from('hrms_designations').select('*, department:hrms_departments(*)');
+    const { data, error } = await supabase.schema('hrmswishluv').from('designations').select('*, department:departments(*)');
     if (error) throw new Error(error.message);
     return (data || []) as (Designation & { department?: Department })[];
   }
@@ -790,7 +813,7 @@ export class DatabaseStorage implements IStorage {
      if (dbData.createdBy) { dbData.created_by = dbData.createdBy; delete dbData.createdBy; }
      if (dbData.departmentId) { dbData.department_id = dbData.departmentId; delete dbData.departmentId; }
 
-     const { data, error } = await supabase.from('hrms_designations').insert(dbData).select().single();
+     const { data, error } = await supabase.schema('hrmswishluv').from('designations').insert(dbData).select().single();
      if (error) throw new Error(error.message);
      return data as Designation;
   }
@@ -798,12 +821,12 @@ export class DatabaseStorage implements IStorage {
      const dbData: any = { ...designation };
      if (dbData.departmentId) { dbData.department_id = dbData.departmentId; delete dbData.departmentId; }
 
-     const { data, error } = await supabase.from('hrms_designations').update(dbData).eq('id', id).select().single();
+     const { data, error } = await supabase.schema('hrmswishluv').from('designations').update(dbData).eq('id', id).select().single();
      if (error) return null;
      return data as Designation;
   }
   async deleteDesignation(id: string): Promise<boolean> {
-     const { error } = await supabase.from('hrms_designations').delete().eq('id', id);
+     const { error } = await supabase.schema('hrmswishluv').from('designations').delete().eq('id', id);
      return !error;
   }
 }
