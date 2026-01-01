@@ -1,12 +1,12 @@
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from "@shared/schema";
+import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
   throw new Error(
-    "DATABASE_URL must be set. Please ensure the database is provisioned and the environment variable is set."
+    "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set."
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
+export const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_ANON_KEY
+);

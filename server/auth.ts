@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
-import session from 'express-session';
+import cookieSession from 'cookie-session';
 import type { Express, RequestHandler } from 'express';
-import connectPg from 'connect-pg-simple';
 import { storage } from './storage';
 import type { RegisterUser, LoginUser } from '@shared/schema';
 
@@ -18,25 +17,13 @@ declare global {
 }
 
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: 'sessions',
-  });
-  
-  return session({
-    secret: process.env.SESSION_SECRET || 'dev-secret-key',
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: sessionTtl,
-    },
+  return cookieSession({
+    name: 'session',
+    keys: [process.env.SESSION_SECRET || 'dev-secret-key'],
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    httpOnly: true,
   });
 }
 
