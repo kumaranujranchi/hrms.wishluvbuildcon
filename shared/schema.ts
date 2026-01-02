@@ -10,24 +10,20 @@ import {
   boolean,
   integer,
   pgEnum,
-  pgSchema,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Define custom schema
-export const mySchema = pgSchema("hrmswishluv");
-
-// Session storage table (required for Replit Auth)
-export const sessions = mySchema.table(
-  "sessions",
+// Session storage table (required for session management)
+export const sessions = pgTable(
+  "hrms_sessions",
   {
     sid: varchar("sid").primaryKey(),
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => [index("idx_hrms_session_expire").on(table.expire)],
 );
 
 // User roles enum
@@ -38,8 +34,8 @@ export const expenseStatusEnum = pgEnum('expense_status', ['submitted', 'approve
 export const attendanceStatusEnum = pgEnum('attendance_status', ['present', 'absent', 'late', 'half_day']);
 
 // Users table 
-export const users = mySchema.table("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = pgTable("hrms_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   email: varchar("email").unique().notNull(),
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name").notNull(),
@@ -59,8 +55,8 @@ export const users = mySchema.table("users", {
 });
 
 // Attendance table
-export const attendance = mySchema.table("attendance", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const attendance = pgTable("hrms_attendance", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").notNull(),
   date: timestamp("date").notNull(),
   checkIn: timestamp("check_in"),
@@ -75,8 +71,8 @@ export const attendance = mySchema.table("attendance", {
 });
 
 // Leave requests table
-export const leaveRequests = mySchema.table("leave_requests", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const leaveRequests = pgTable("hrms_leave_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").notNull(),
   type: leaveTypeEnum("type").notNull(),
   startDate: timestamp("start_date").notNull(),
@@ -91,8 +87,8 @@ export const leaveRequests = mySchema.table("leave_requests", {
 });
 
 // Expense claims table
-export const expenseClaims = mySchema.table("expense_claims", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const expenseClaims = pgTable("hrms_expense_claims", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").notNull(),
   title: varchar("title").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
@@ -108,8 +104,8 @@ export const expenseClaims = mySchema.table("expense_claims", {
 });
 
 // Employee salary structure (saved once per employee)
-export const employeeSalaryStructure = mySchema.table("employee_salary_structure", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const employeeSalaryStructure = pgTable("hrms_employee_salary_structure", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").references(() => users.id).notNull().unique(),
   basicSalary: decimal("basic_salary", { precision: 10, scale: 2 }).notNull(),
   hra: decimal("hra", { precision: 10, scale: 2 }).default("0.00"),
@@ -129,8 +125,8 @@ export const employeeSalaryStructure = mySchema.table("employee_salary_structure
 });
 
 // Payroll table
-export const payroll = mySchema.table("payroll", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const payroll = pgTable("hrms_payroll", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").notNull(),
   month: integer("month").notNull(),
   year: integer("year").notNull(),
@@ -148,8 +144,8 @@ export const payroll = mySchema.table("payroll", {
 });
 
 // Announcements table
-export const announcements = mySchema.table("announcements", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const announcements = pgTable("hrms_announcements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   title: varchar("title").notNull(),
   content: text("content").notNull(),
   priority: varchar("priority").default('normal'),
@@ -159,8 +155,8 @@ export const announcements = mySchema.table("announcements", {
 });
 
 // Company settings table
-export const companySettings = mySchema.table("company_settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const companySettings = pgTable("hrms_company_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   companyName: varchar("company_name").notNull(),
   officeLocations: jsonb("office_locations"), // Array of {name, latitude, longitude, radius}
   workingHours: jsonb("working_hours"), // {start, end}
@@ -170,8 +166,8 @@ export const companySettings = mySchema.table("company_settings", {
 });
 
 // Employee onboarding details table
-export const employeeProfiles = mySchema.table("employee_profiles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const employeeProfiles = pgTable("hrms_employee_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").references(() => users.id).notNull().unique(),
   
   // Personal Information
@@ -420,8 +416,8 @@ export const insertPayrollSchema = createInsertSchema(payroll).omit({
 });
 
 // Leave assignments table for admin-assigned leave balances
-export const leaveAssignments = mySchema.table("leave_assignments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const leaveAssignments = pgTable("hrms_leave_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   userId: varchar("user_id").references(() => users.id).notNull(),
   year: integer("year").notNull(),
   annualLeave: integer("annual_leave").default(21),
@@ -472,8 +468,8 @@ export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type CompanySettings = typeof companySettings.$inferSelect;
 
 // Department schema
-export const departments = mySchema.table("departments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const departments = pgTable("hrms_departments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   name: varchar("name").notNull().unique(),
   description: text("description"),
   createdBy: varchar("created_by").references(() => users.id),
@@ -486,12 +482,11 @@ export const insertDepartmentSchema = createInsertSchema(departments).omit({
   createdBy: true,
   createdAt: true,
   updatedAt: true,
-  onlyWithDefault: false,
 });
 
 // Designation schema
-export const designations = mySchema.table("designations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const designations = pgTable("hrms_designations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()::text`),
   name: varchar("name").notNull(),
   description: text("description"),
   departmentId: varchar("department_id").references(() => departments.id),
